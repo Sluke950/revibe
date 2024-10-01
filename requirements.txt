@@ -1,0 +1,4 @@
+pyobd>=0.2.0
+pybluez>=0.22
+requests>=2.25.1  # For making HTTP requests, if needed
+numpy>=1.21.0     # Useful for numerical operations
