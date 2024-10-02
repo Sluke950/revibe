@@ -1,35 +1,31 @@
-import obd  # Import the OBD library
-import bluetooth  # Import the Bluetooth library
+import PyOBD as obd
+import time
 
-# Define the Bluetooth address of your OBD-II reader
-OBD2_BLUETOOTH_ADDRESS = "XX:XX:XX:XX:XX:XX"  # Replace with your OBD-II reader's address
+# Replace with the actual serial port (e.g., '/dev/rfcomm0' or '/dev/ttyUSB0')
+serial_port = '/dev/rfcomm0'
 
-def main():
-    # Attempt to connect to the OBD-II device via Bluetooth
-    try:
-        # Create an OBD connection using Bluetooth
-        connection = obd.OBD(portstr=OBD2_BLUETOOTH_ADDRESS)  # Assuming using Bluetooth
-        print("Connected to OBD-II device.")
-    except Exception as e:
-        print(f"Failed to connect to OBD-II device: {e}")
-        return
+# Create an OBD connection with the serial port
+connection = obd.OBD(port=serial_port)  # Automatically connects to the specified OBD-II interface
 
-    # Create a command to get RPM
-    rpm_command = obd.commands.RPM
+# Command to get the Engine RPM
+rpm_cmd = obd.commands.RPM
 
-    while True:
-        # Send the RPM command and get the response
-        response = connection.query(rpm_command)
-
-        # Check if the response is valid
-        if response.is_null():
-            print("No RPM data received.")
-        else:
-            # Print the RPM value
-            print(f"Current RPM: {response.value} RPM")
-
-        # Wait a bit before the next query
-        time.sleep(1)  # Adjust the sleep time as needed
+# Function to read engine RPM
+def read_engine_rpm():
+    response = connection.query(rpm_cmd)  # Send the command
+    if response.is_null():
+        print("No response from the OBD-II interface.")
+    else:
+        rpm = response.value.magnitude  # Extract the RPM value
+        print(f"Engine RPM: {rpm}")
 
 if __name__ == "__main__":
-    main()
+    try:
+        while True:
+            read_engine_rpm()
+            # Wait for a second before the next reading
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("Exiting...")
+    finally:
+        connection.close()  # Close the OBD connection
